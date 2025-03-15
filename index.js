@@ -139,7 +139,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 			tlItemsValue = [...newValues] // Обновляем массив
 		}
 
-		setTimeout(checkTLValues, 5000) // Проверяем каждые 5 сек
+		setTimeout(checkTLValues, 20)
 	}
 
 	// Запускаем отслеживание
