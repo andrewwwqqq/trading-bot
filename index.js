@@ -98,12 +98,33 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 		console.log("Кнопка 'Collapse panel' не найдена, пропускаем...")
 	}
 
-	// Открываем окно данных
+	// Ждём кнопку
 	await page.waitForSelector(
 		'button[aria-label="Object Tree and Data Window"]',
-		{ timeout: 10000 }
+		{
+			timeout: 10000,
+		}
 	)
-	await page.click('button[aria-label="Object Tree and Data Window"]')
+
+	// Находим кнопку
+	const button = await page.$(
+		'button[aria-label="Object Tree and Data Window"]'
+	)
+
+	if (button) {
+		// Проверяем, есть ли у неё активный класс
+		const hasActiveClass = await page.evaluate(
+			el => el.classList.contains('isActive-I_wb5FjE'),
+			button
+		)
+
+		if (!hasActiveClass) {
+			await button.click() // Кликаем, только если класса нет
+			console.log('✅ Кнопка нажата')
+		} else {
+			console.log('⚡ Кнопка уже активна, клик не нужен')
+		}
+	}
 
 	// Кликаем по "Data Window"
 	await page.waitForSelector('#data-window', { timeout: 10000 })
