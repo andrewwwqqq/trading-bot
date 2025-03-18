@@ -80,6 +80,57 @@ const puppeteer = require('puppeteer')
 		console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
 	}
 
+	// Теперь добавляем проверку для кнопки с текстом "Data Window"
+	const dataWindowButtonExists = await page.evaluate(() => {
+		const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
+		const result = document.evaluate(
+			xpath,
+			document,
+			null,
+			XPathResult.FIRST_ORDERED_NODE_TYPE,
+			null
+		)
+		const spanElement = result.singleNodeValue
+		if (spanElement) {
+			const button = spanElement.closest('button') // Находим родительский <button>
+			if (button) {
+				return button.getAttribute('aria-selected') // Возвращаем значение атрибута aria-selected
+			}
+		}
+		return null // Если не найдено, возвращаем null
+	})
+
+	if (dataWindowButtonExists) {
+		console.log('✅ Кнопка "Data Window" найдена!')
+
+		if (dataWindowButtonExists === 'false') {
+			console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
+			// Кликаем по кнопке
+			await page.evaluate(() => {
+				const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
+				const result = document.evaluate(
+					xpath,
+					document,
+					null,
+					XPathResult.FIRST_ORDERED_NODE_TYPE,
+					null
+				)
+				const spanElement = result.singleNodeValue
+				if (spanElement) {
+					const button = spanElement.closest('button') // Находим родительский <button>
+					if (button) {
+						button.click() // Кликаем по кнопке
+					}
+				}
+			})
+			console.log('✅ Кнопка "Data Window" активирована!')
+		} else {
+			console.log('✅ Кнопка "Data Window" уже активирована!')
+		}
+	} else {
+		console.error('❌ Кнопка "Data Window" не найдена!')
+	}
+
 	return
 
 	// Ожидаемые цвета по индексам
