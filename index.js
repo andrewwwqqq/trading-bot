@@ -316,8 +316,6 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 		}
 	}
 
-	return
-
 	// Ожидаемые цвета по индексам
 	const expectedColors = [
 		'rgb(255, 82, 82)', // 1, 5
@@ -340,7 +338,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 			const spans = []
 
-			for (let i = 0; i < result.snapshotLength; i++) {
+			for (let i = 0; i < result.snapshotLength && spans.length < 8; i++) {
 				const shapesDiv = result.snapshotItem(i)
 				if (!shapesDiv || !shapesDiv.parentElement) continue
 
@@ -362,7 +360,6 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 	// Функция проверки соответствия цветов
 	const validateColors = spans => {
 		spans.forEach((span, index) => {
-			if (index >= 8) return // Проверяем только 1-8 элементы
 			if (span.isValid) {
 				console.log(
 					`✅ Элемент ${index + 1} соответствует: ${span.color}, текст: "${
