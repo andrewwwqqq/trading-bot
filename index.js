@@ -40,6 +40,48 @@ const puppeteer = require('puppeteer')
 		}
 	)
 
+	// 🔍 Поиск кнопки с aria-label="Object Tree and Data Window"
+	const buttonExists = await page.evaluate(() => {
+		const xpath = "//button[@aria-label='Object Tree and Data Window']"
+		const result = document.evaluate(
+			xpath,
+			document,
+			null,
+			XPathResult.FIRST_ORDERED_NODE_TYPE,
+			null
+		)
+		return result.singleNodeValue !== null // true, если кнопка найдена
+	})
+
+	if (buttonExists) {
+		console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
+
+		// Проверяем атрибут aria-pressed
+		const ariaPressed = await page.evaluate(() => {
+			const button = document.querySelector(
+				"button[aria-label='Object Tree and Data Window']"
+			)
+			return button ? button.getAttribute('aria-pressed') : null
+		})
+
+		if (ariaPressed === 'false') {
+			console.log('⚡ Кнопка не активна, кликаем...')
+			// Кликаем по кнопке
+			await page.click("button[aria-label='Object Tree and Data Window']")
+			// Ждем, чтобы значение aria-pressed стало true
+
+			console.log(`ariaPressed after click ${ariaPressed}`)
+
+			console.log('✅ Кнопка активирована!')
+		} else {
+			console.log('✅ Кнопка уже активирована!')
+		}
+	} else {
+		console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
+	}
+
+	return
+
 	// Ожидаемые цвета по индексам
 	const expectedColors = [
 		'rgb(255, 82, 82)', // 1, 5
