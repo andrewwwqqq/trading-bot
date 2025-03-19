@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "puppeteer": "^23.0.0"
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.0",
+    "pg": "^8.14.1",
+    "puppeteer": "^23.0.0",
+    "redis": "^4.7.0"
   }
 }
