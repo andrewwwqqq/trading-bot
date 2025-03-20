@@ -1,8 +1,11 @@
 const puppeteer = require('puppeteer')
 const { delay } = require('./helpers')
-const { urls, currencies, cookies } = require('./constants')
-
-const API_URL = 'http://localhost:3000' // Укажи URL сервера
+const { urls, currencies, cookies, API_URL } = require('./constants')
+const {
+	checkIsObjectTreeButton,
+	checkIsObjectTreeButtonActive,
+	checkIsDataWindowButton,
+} = require('./core')
 
 ;(async () => {
 	for (let index = 0; index < urls.length; index++) {
@@ -29,36 +32,19 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		})
 
 		// 🔍 Поиск кнопки с aria-label="Object Tree and Data Window"
-		const buttonExists = await page.evaluate(() => {
-			const xpath = "//button[@aria-label='Object Tree and Data Window']"
-			const result = document.evaluate(
-				xpath,
-				document,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			)
-			return result.singleNodeValue !== null // true, если кнопка найдена
-		})
+		const isObjectTreeButton = await checkIsObjectTreeButton(page)
 
-		if (buttonExists) {
+		if (isObjectTreeButton) {
 			console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
 
 			// Проверяем атрибут aria-pressed
-			const ariaPressed = await page.evaluate(() => {
-				const button = document.querySelector(
-					"button[aria-label='Object Tree and Data Window']"
-				)
-				return button ? button.getAttribute('aria-pressed') : null
-			})
+			const isObjectTreeButtonActive = await checkIsObjectTreeButtonActive(page)
 
-			if (ariaPressed === 'false') {
+			if (isObjectTreeButtonActive === 'false') {
 				console.log('⚡ Кнопка не активна, кликаем...')
 				// Кликаем по кнопке
 				await page.click("button[aria-label='Object Tree and Data Window']")
 				// Ждем, чтобы значение aria-pressed стало true
-
-				console.log(`ariaPressed after click ${ariaPressed}`)
 
 				console.log('✅ Кнопка активирована!')
 			} else {
@@ -69,29 +55,12 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		}
 
 		// Теперь добавляем проверку для кнопки с текстом "Data Window"
-		const dataWindowButtonExists = await page.evaluate(() => {
-			const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
-			const result = document.evaluate(
-				xpath,
-				document,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			)
-			const spanElement = result.singleNodeValue
-			if (spanElement) {
-				const button = spanElement.closest('button') // Находим родительский <button>
-				if (button) {
-					return button.getAttribute('aria-selected') // Возвращаем значение атрибута aria-selected
-				}
-			}
-			return null // Если не найдено, возвращаем null
-		})
+		const isDataWindowButton = await checkIsDataWindowButton(page)
 
-		if (dataWindowButtonExists) {
+		if (isDataWindowButton) {
 			console.log('✅ Кнопка "Data Window" найдена!')
 
-			if (dataWindowButtonExists === 'false') {
+			if (isDataWindowButton === 'false') {
 				console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
 				// Кликаем по кнопке
 				await page.evaluate(() => {

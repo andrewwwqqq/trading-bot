@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:3000' // Укажи URL сервера
+
 const urls = [
 	'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
 	'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
@@ -22,4 +24,4 @@ const cookies = [
 	},
 ]
 
-module.exports = { urls, currencies, cookies }
+module.exports = { urls, currencies, cookies, API_URL }
