@@ -1,16 +1,10 @@
 const puppeteer = require('puppeteer')
+const { delay } = require('./helpers')
+const { urls, currencies, cookies } = require('./constants')
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const API_URL = 'http://localhost:3000' // Укажи URL сервера
 
 ;(async () => {
-	const urls = [
-		'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
-		'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
-	]
-
-	const currencies = ['AVAXUSDT', 'ADAUSDT']
-
 	for (let index = 0; index < urls.length; index++) {
 		const url = urls[index]
 
@@ -21,23 +15,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		const page = await browser.newPage()
 
 		// Устанавливаем cookies для авторизации
-		const cookies = [
-			{
-				name: 'sessionid',
-				value: 'eictbpvvxxg8ocqvyr7jjhk205lfknnl',
-				domain: '.tradingview.com',
-			},
-			{
-				name: 'sessionid_sign',
-				value: 'v3:0x18KSxoHi5nwUyFAvWWt+hAyMzuj5QXKFULA8bWB7s=',
-				domain: '.tradingview.com',
-			},
-			{
-				name: 'tv_ecuid',
-				value: 'd637097c-674b-4b0e-a680-1f035be2d549',
-				domain: '.tradingview.com',
-			},
-		]
+
 		await page.setCookie(...cookies)
 
 		console.log('✅ Авторизация через cookies успешна!')
