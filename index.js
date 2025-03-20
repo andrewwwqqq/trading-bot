@@ -1,13 +1,16 @@
 const puppeteer = require('puppeteer')
-const { delay } = require('./helpers')
-const { urls, currencies, cookies, API_URL } = require('./constants')
-const {
-	checkIsObjectTreeButton,
-	checkIsObjectTreeButtonActive,
-	checkIsDataWindowButton,
-} = require('./core')
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+const API_URL = 'http://localhost:3000' // Укажи URL сервера
 
 ;(async () => {
+	const urls = [
+		'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
+		'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
+	]
+
+	const currencies = ['AVAXUSDT', 'ADAUSDT']
+
 	for (let index = 0; index < urls.length; index++) {
 		const url = urls[index]
 
@@ -18,7 +21,23 @@ const {
 		const page = await browser.newPage()
 
 		// Устанавливаем cookies для авторизации
-
+		const cookies = [
+			{
+				name: 'sessionid',
+				value: 'eictbpvvxxg8ocqvyr7jjhk205lfknnl',
+				domain: '.tradingview.com',
+			},
+			{
+				name: 'sessionid_sign',
+				value: 'v3:0x18KSxoHi5nwUyFAvWWt+hAyMzuj5QXKFULA8bWB7s=',
+				domain: '.tradingview.com',
+			},
+			{
+				name: 'tv_ecuid',
+				value: 'd637097c-674b-4b0e-a680-1f035be2d549',
+				domain: '.tradingview.com',
+			},
+		]
 		await page.setCookie(...cookies)
 
 		console.log('✅ Авторизация через cookies успешна!')
@@ -32,19 +51,39 @@ const {
 		})
 
 		// 🔍 Поиск кнопки с aria-label="Object Tree and Data Window"
-		const isObjectTreeButton = await checkIsObjectTreeButton(page)
+		const buttonExists = await page.evaluate(() => {
+			const xpath = "//button[@aria-label='Object Tree and Data Window']"
+			const result = document.evaluate(
+				xpath,
+				document,
+				null,
+				XPathResult.FIRST_ORDERED_NODE_TYPE,
+				null
+			)
+			return result.singleNodeValue !== null // true, если кнопка найдена
+		})
 
-		if (isObjectTreeButton) {
+		console.log('buttonExists')
+		console.log(buttonExists)
+
+		if (buttonExists) {
 			console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
 
 			// Проверяем атрибут aria-pressed
-			const isObjectTreeButtonActive = await checkIsObjectTreeButtonActive(page)
+			const ariaPressed = await page.evaluate(() => {
+				const button = document.querySelector(
+					"button[aria-label='Object Tree and Data Window']"
+				)
+				return button ? button.getAttribute('aria-pressed') : null
+			})
 
-			if (isObjectTreeButtonActive === 'false') {
+			if (ariaPressed === 'false') {
 				console.log('⚡ Кнопка не активна, кликаем...')
 				// Кликаем по кнопке
 				await page.click("button[aria-label='Object Tree and Data Window']")
 				// Ждем, чтобы значение aria-pressed стало true
+
+				console.log(`ariaPressed after click ${ariaPressed}`)
 
 				console.log('✅ Кнопка активирована!')
 			} else {
@@ -55,12 +94,29 @@ const {
 		}
 
 		// Теперь добавляем проверку для кнопки с текстом "Data Window"
-		const isDataWindowButton = await checkIsDataWindowButton(page)
+		const dataWindowButtonExists = await page.evaluate(() => {
+			const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
+			const result = document.evaluate(
+				xpath,
+				document,
+				null,
+				XPathResult.FIRST_ORDERED_NODE_TYPE,
+				null
+			)
+			const spanElement = result.singleNodeValue
+			if (spanElement) {
+				const button = spanElement.closest('button') // Находим родительский <button>
+				if (button) {
+					return button.getAttribute('aria-selected') // Возвращаем значение атрибута aria-selected
+				}
+			}
+			return null // Если не найдено, возвращаем null
+		})
 
-		if (isDataWindowButton) {
+		if (dataWindowButtonExists) {
 			console.log('✅ Кнопка "Data Window" найдена!')
 
-			if (isDataWindowButton === 'false') {
+			if (dataWindowButtonExists === 'false') {
 				console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
 				// Кликаем по кнопке
 				await page.evaluate(() => {
