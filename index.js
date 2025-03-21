@@ -11,6 +11,8 @@ const {
 	doChooseIndicatorButtonActive,
 	findInviteOnlyData,
 	findIndicatorData,
+	findCloseIndicatorsButtonData,
+	clickCloseIndicatorsButton,
 } = require('./core')
 
 ;(async () => {
@@ -78,9 +80,6 @@ const {
 			console.error('❌ Кнопка "Data Window" не найдена!')
 		}
 
-		// delete
-		await delay(10000)
-
 		// 🔍 ищем индикатор "TL 1.0" на панели
 		const tl1Indicator = await findTl1Indicator(page)
 
@@ -125,32 +124,19 @@ const {
 
 				// 🔍 Проверяем и кликаем по "Indicator - TL 1.0"
 				const indicatorData = await findIndicatorData(page)
-				return
 
 				if (indicatorData.found) {
 					console.log('✅ Элемент "Indicator - TL 1.0" найден и кликнут!')
 
 					// 🔍 Ищем кнопку закрытия выбора индикаторов
-					const closeIndicatorsButtonData = await page.evaluate(() => {
-						const xpath = "//button[@data-name='close']"
-						const result = document.evaluate(
-							xpath,
-							document,
-							null,
-							XPathResult.FIRST_ORDERED_NODE_TYPE,
-							null
-						)
-						const closeIndicatorsButton = result.singleNodeValue
-
-						if (closeIndicatorsButton) {
-							closeIndicatorsButton.click()
-							return { found: true }
-						}
-						return { found: false }
-					})
+					const closeIndicatorsButtonData = await findCloseIndicatorsButtonData(
+						page
+					)
 
 					if (closeIndicatorsButtonData.found) {
-						console.log('✅ Кнопка "Close" нажата.')
+						console.log('✅ Кнопка "Close" найдена.')
+
+						await clickCloseIndicatorsButton(page, closeIndicatorsButtonData)
 					} else {
 						console.log('❌ Кнопка "Close" не найдена.')
 					}

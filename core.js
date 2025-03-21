@@ -206,6 +206,48 @@ const findIndicatorData = async page => {
 	return indicatorData
 }
 
+// 🔍 Функция для поиска кнопки закрытия индикаторов
+const findCloseIndicatorsButtonData = async page => {
+	const closeButtonData = await page.evaluate(() => {
+		const xpath = "//button[@data-name='close']"
+		const result = document.evaluate(
+			xpath,
+			document,
+			null,
+			XPathResult.FIRST_ORDERED_NODE_TYPE,
+			null
+		)
+		const closeButton = result.singleNodeValue
+
+		if (closeButton) {
+			return {
+				found: true,
+				xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
+			}
+		}
+		return { found: false }
+	})
+
+	return closeButtonData
+}
+
+// 🔘 Функция для клика по кнопке закрытия
+const clickCloseIndicatorsButton = async (page, closeButtonData) => {
+	await page.evaluate(xpath => {
+		const result = document.evaluate(
+			xpath,
+			document,
+			null,
+			XPathResult.FIRST_ORDERED_NODE_TYPE,
+			null
+		)
+		const closeButton = result.singleNodeValue
+		if (closeButton) closeButton.click()
+	}, closeButtonData.xpath)
+
+	console.log('✅ Кнопка "Close" нажата.')
+}
+
 module.exports = {
 	findObjectTreeButtonData,
 	doObjectTreeButtonActive,
@@ -216,4 +258,6 @@ module.exports = {
 	doChooseIndicatorButtonActive,
 	findInviteOnlyData,
 	findIndicatorData,
+	findCloseIndicatorsButtonData,
+	clickCloseIndicatorsButton,
 }
