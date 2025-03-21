@@ -100,7 +100,6 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		} else {
 			console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
 		}
-		return
 		// 🔍 Ищем кнопку "Data Window" один раз и получаем её атрибут aria-selected
 		const dataWindowButtonData = await page.evaluate(() => {
 			const xpath = "//button[@id='data-window']"
@@ -111,21 +110,23 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				XPathResult.FIRST_ORDERED_NODE_TYPE,
 				null
 			)
-			const button = result.singleNodeValue
+			const dataWindowButton = result.singleNodeValue
 
-			if (button) {
+			if (dataWindowButton) {
 				return {
 					found: true,
-					ariaSelected: button.getAttribute('aria-selected'),
+					ariaSelected: dataWindowButton.getAttribute('aria-selected'),
 					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
 				}
 			}
 			return { found: false }
 		})
 
+		// если кнопка Data Window найдена
 		if (dataWindowButtonData.found) {
 			console.log('✅ Кнопка "Data Window" найдена!')
 
+			// проверяем активна ли кнопка Data Window
 			if (dataWindowButtonData.ariaSelected === 'false') {
 				console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
 
@@ -138,8 +139,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 						XPathResult.FIRST_ORDERED_NODE_TYPE,
 						null
 					)
-					const button = result.singleNodeValue
-					if (button) button.click()
+					const dataWindowButton = result.singleNodeValue
+					if (dataWindowButton) dataWindowButton.click()
 				}, dataWindowButtonData.xpath)
 
 				console.log('✅ Кнопка "Data Window" активирована!')
@@ -150,6 +151,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			console.error('❌ Кнопка "Data Window" не найдена!')
 		}
 
+		return
 		// 🔍 Ищем кнопку "TL 1.0" (span) один раз
 		const tl1ButtonData = await page.evaluate(() => {
 			const xpath = "//span[contains(text(), 'TL 1.0')]"
