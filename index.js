@@ -366,7 +366,6 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				return spans
 			}, expectedColors)
 		}
-		return
 
 		// Функция проверки соответствия цветов
 		const validateColors = spans => {
