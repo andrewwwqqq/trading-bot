@@ -50,8 +50,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			timeout: 0,
 		})
 
-		// 🔍 Поиск кнопки с aria-label="Object Tree and Data Window"
-		const buttonExists = await page.evaluate(() => {
+		// 🔍 Ищем кнопку один раз и получаем её атрибут aria-pressed
+		const objectTreeButtonData = await page.evaluate(() => {
 			const xpath = "//button[@aria-label='Object Tree and Data Window']"
 			const result = document.evaluate(
 				xpath,
@@ -63,37 +63,33 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			const button = result.singleNodeValue
 
 			if (button) {
-				// Возвращаем true и сам aria-label, если кнопка найдена
 				return {
 					found: true,
-					ariaLabel: button.getAttribute('aria-label'), // Получаем aria-label
+					ariaPressed: button.getAttribute('aria-pressed'),
+					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
 				}
 			}
-			return { found: false } // Кнопка не найдена
+			return { found: false }
 		})
 
-		console.log('buttonExists:', buttonExists) // Выводим информацию о кнопке
-
-		return
-
-		if (buttonExists) {
+		if (objectTreeButtonData.found) {
 			console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
 
-			// Проверяем атрибут aria-pressed
-			const ariaPressed = await page.evaluate(() => {
-				const button = document.querySelector(
-					"button[aria-label='Object Tree and Data Window']"
-				)
-				return button ? button.getAttribute('aria-pressed') : null
-			})
-
-			if (ariaPressed === 'false') {
+			if (objectTreeButtonData.ariaPressed === 'false') {
 				console.log('⚡ Кнопка не активна, кликаем...')
-				// Кликаем по кнопке
-				await page.click("button[aria-label='Object Tree and Data Window']")
-				// Ждем, чтобы значение aria-pressed стало true
 
-				console.log(`ariaPressed after click ${ariaPressed}`)
+				// Кликаем по кнопке через XPath
+				await page.evaluate(xpath => {
+					const result = document.evaluate(
+						xpath,
+						document,
+						null,
+						XPathResult.FIRST_ORDERED_NODE_TYPE,
+						null
+					)
+					const button = result.singleNodeValue
+					if (button) button.click()
+				}, objectTreeButtonData.xpath)
 
 				console.log('✅ Кнопка активирована!')
 			} else {
@@ -153,6 +149,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		} else {
 			console.error('❌ Кнопка "Data Window" не найдена!')
 		}
+
+		return
 
 		const tl1ButtonExists = await page.evaluate(() => {
 			const xpath = "//span[contains(text(), 'TL 1.0')]" // Ищем span с нужным текстом
