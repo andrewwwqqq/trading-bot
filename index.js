@@ -181,9 +181,9 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 					XPathResult.FIRST_ORDERED_NODE_TYPE,
 					null
 				)
-				const button = result.singleNodeValue
+				const chooseIndicatorButton = result.singleNodeValue
 				return {
-					found: button !== null,
+					found: chooseIndicatorButton !== null,
 					xpath: xpath,
 				}
 			})
@@ -336,6 +336,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				)
 			}
 		}
+
+		return
 
 		// Ожидаемые цвета по индексам
 		const expectedColors = [
