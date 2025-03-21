@@ -60,11 +60,21 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				XPathResult.FIRST_ORDERED_NODE_TYPE,
 				null
 			)
-			return result.singleNodeValue !== null // true, если кнопка найдена
+			const button = result.singleNodeValue
+
+			if (button) {
+				// Возвращаем true и сам aria-label, если кнопка найдена
+				return {
+					found: true,
+					ariaLabel: button.getAttribute('aria-label'), // Получаем aria-label
+				}
+			}
+			return { found: false } // Кнопка не найдена
 		})
 
-		console.log('buttonExists')
-		console.log(buttonExists)
+		console.log('buttonExists:', buttonExists) // Выводим информацию о кнопке
+
+		return
 
 		if (buttonExists) {
 			console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
