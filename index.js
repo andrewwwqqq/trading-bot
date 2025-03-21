@@ -50,7 +50,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			timeout: 0,
 		})
 
-		// 🔍 Ищем кнопку один раз и получаем её атрибут aria-pressed
+		// 🔍 Ищем кнопку Object Tree and Data Window один раз и получаем её атрибут aria-pressed
 		const objectTreeButtonData = await page.evaluate(() => {
 			const xpath = "//button[@aria-label='Object Tree and Data Window']"
 			const result = document.evaluate(
@@ -60,21 +60,23 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				XPathResult.FIRST_ORDERED_NODE_TYPE,
 				null
 			)
-			const button = result.singleNodeValue
+			const objectTreeButton = result.singleNodeValue
 
-			if (button) {
+			if (objectTreeButton) {
 				return {
 					found: true,
-					ariaPressed: button.getAttribute('aria-pressed'),
+					ariaPressed: objectTreeButton.getAttribute('aria-pressed'),
 					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
 				}
 			}
 			return { found: false }
 		})
 
+		// если кнопка Object Tree and Data Window найдена
 		if (objectTreeButtonData.found) {
 			console.log('✅ Кнопка "Object Tree and Data Window" найдена!')
 
+			// проверяем активна ли Object Tree and Data Window
 			if (objectTreeButtonData.ariaPressed === 'false') {
 				console.log('⚡ Кнопка не активна, кликаем...')
 
@@ -87,8 +89,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 						XPathResult.FIRST_ORDERED_NODE_TYPE,
 						null
 					)
-					const button = result.singleNodeValue
-					if (button) button.click()
+					const objectTreeButton = result.singleNodeValue
+					if (objectTreeButton) objectTreeButton.click()
 				}, objectTreeButtonData.xpath)
 
 				console.log('✅ Кнопка активирована!')
@@ -98,7 +100,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		} else {
 			console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
 		}
-
+		return
 		// 🔍 Ищем кнопку "Data Window" один раз и получаем её атрибут aria-selected
 		const dataWindowButtonData = await page.evaluate(() => {
 			const xpath = "//button[@id='data-window']"
