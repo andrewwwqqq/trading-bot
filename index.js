@@ -1,16 +1,8 @@
 const puppeteer = require('puppeteer')
-
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
-const API_URL = 'http://localhost:3000' // Укажи URL сервера
+const { cookies, urls } = require('./constants')
+const { delay, sendTlData } = require('./share')
 
 ;(async () => {
-	const urls = [
-		'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
-		// 'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
-	]
-
-	const currencies = ['AVAXUSDT', 'ADAUSDT']
-
 	for (let index = 0; index < urls.length; index++) {
 		const url = urls[index]
 
@@ -21,23 +13,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		const page = await browser.newPage()
 
 		// Устанавливаем cookies для авторизации
-		const cookies = [
-			{
-				name: 'sessionid',
-				value: 'eictbpvvxxg8ocqvyr7jjhk205lfknnl',
-				domain: '.tradingview.com',
-			},
-			{
-				name: 'sessionid_sign',
-				value: 'v3:0x18KSxoHi5nwUyFAvWWt+hAyMzuj5QXKFULA8bWB7s=',
-				domain: '.tradingview.com',
-			},
-			{
-				name: 'tv_ecuid',
-				value: 'd637097c-674b-4b0e-a680-1f035be2d549',
-				domain: '.tradingview.com',
-			},
-		]
+
 		await page.setCookie(...cookies)
 
 		console.log('✅ Авторизация через cookies успешна!')
@@ -406,47 +382,6 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			})
 
 			return isAllElementsValid
-		}
-
-		const sendTlData = async (previousShapesData, index) => {
-			const tl = previousShapesData.map(previousShapeData => {
-				const { isValid, ...newPreviousShapeData } = previousShapeData // Извлекаем все свойства, кроме isValid
-				return newPreviousShapeData
-			})
-
-			const now = new Date()
-			const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1)
-				.toString()
-				.padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now
-				.getHours()
-				.toString()
-				.padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now
-				.getSeconds()
-				.toString()
-				.padStart(2, '0')}`
-
-			const data = {
-				currencie: currencies[index],
-				tl,
-				timestamp,
-			}
-
-			try {
-				const response = await fetch(`${API_URL}/data`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(data),
-				})
-
-				const result = await response.json()
-				console.log('✅ Ответ от сервера:', result)
-
-				return result
-			} catch (error) {
-				console.error('❌ Ошибка отправки данных:', error)
-			}
 		}
 
 		// 🔥 Первичная проверка цветов
