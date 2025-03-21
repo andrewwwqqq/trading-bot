@@ -337,8 +337,6 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			}
 		}
 
-		return
-
 		// Ожидаемые цвета по индексам
 		const expectedColors = [
 			'rgb(255, 82, 82)', // 1, 5
@@ -348,7 +346,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		]
 
 		// Функция для получения значений всех span внутри родительских div с "Shapes"
-		const getSpans = async () => {
+		const getShapesData = async () => {
 			return await page.evaluate(expectedColors => {
 				const xpath = "//div[contains(text(), 'Shapes')]"
 				const result = document.evaluate(
@@ -359,37 +357,42 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 					null
 				)
 
-				const spans = []
+				const shapesData = []
 
-				for (let i = 0; i < result.snapshotLength && spans.length < 8; i++) {
-					const shapesDiv = result.snapshotItem(i)
-					if (!shapesDiv || !shapesDiv.parentElement) continue
+				for (
+					let i = 0;
+					i < result.snapshotLength && shapesData.length < 8;
+					i++
+				) {
+					const shapesDataParent = result.snapshotItem(i)
+					if (!shapesDataParent || !shapesDataParent.parentElement) continue
 
-					const span = shapesDiv.parentElement.querySelector('span')
-					if (span) {
-						const color = span.style.color
-						const text = span.innerText.trim()
+					const shapesDataValue =
+						shapesDataParent.parentElement.querySelector('span')
+					if (shapesDataValue) {
+						const color = shapesDataValue.style.color
+						const text = shapesDataValue.innerText.trim()
 						const expectedColor = expectedColors[i % 4] // Цвет по шаблону
 						const isValid = color === expectedColor // Проверка соответствия
 
-						spans.push({ color, text, isValid })
+						shapesData.push({ color, text, isValid })
 					}
 				}
 
-				return spans
+				return shapesData
 			}, expectedColors)
 		}
 
 		// Функция проверки соответствия цветов
-		const validateColors = spans => {
+		const validateColors = shapesData => {
 			let isAllElementsValid = true
 
-			spans.forEach((span, index) => {
-				if (span.isValid) {
+			shapesData.forEach((shapeData, index) => {
+				if (shapeData.isValid) {
 					console.log(
-						`✅ Элемент ${index + 1} соответствует: ${span.color}, текст: "${
-							span.text
-						}"`
+						`✅ Элемент ${index + 1} соответствует: ${
+							shapeData.color
+						}, текст: "${shapeData.text}"`
 					)
 				} else {
 					isAllElementsValid = false
@@ -397,7 +400,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 					console.error(
 						`❌ Ошибка! Элемент ${index + 1}: ожидался цвет ${
 							expectedColors[index % 4]
-						}, но получен ${span.color}`
+						}, но получен ${shapeData.color}`
 					)
 				}
 			})
@@ -405,10 +408,10 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			return isAllElementsValid
 		}
 
-		const sendTlData = async (previousSpans, index) => {
-			const tl = previousSpans.map(previousSpan => {
-				const { isValid, ...newPreviousSpan } = previousSpan // Извлекаем все свойства, кроме isValid
-				return newPreviousSpan
+		const sendTlData = async (previousShapesData, index) => {
+			const tl = previousShapesData.map(previousShapeData => {
+				const { isValid, ...newPreviousShapeData } = previousShapeData // Извлекаем все свойства, кроме isValid
+				return newPreviousShapeData
 			})
 
 			const now = new Date()
@@ -447,25 +450,25 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 		}
 
 		// 🔥 Первичная проверка цветов
-		let previousSpans = await getSpans()
-		console.log('📊 Начальные значения span:', previousSpans)
-		const isValidColorOfElements = validateColors(previousSpans)
+		let previousShapesData = await getShapesData()
+		console.log('📊 Начальные значения span:', previousShapesData)
+		const isValidColorOfElements = validateColors(previousShapesData)
 
 		if (isValidColorOfElements) {
-			await sendTlData(previousSpans, index)
+			await sendTlData(previousShapesData, index)
 		}
 
 		// 🔄 Проверяем изменения каждые 20 мс
 		setInterval(async () => {
-			const currentSpans = await getSpans()
+			const currentShapesData = await getShapesData()
 
 			// Проверяем изменения
 			let hasChanges = false
 
-			currentSpans.forEach((span, index) => {
+			currentShapesData.forEach((currentShapeData, index) => {
 				if (
-					span.color !== previousSpans[index]?.color ||
-					span.text !== previousSpans[index]?.text
+					currentShapeData.color !== previousShapesData[index]?.color ||
+					currentShapeData.text !== previousShapesData[index]?.text
 				) {
 					hasChanges = true
 				}
@@ -474,12 +477,12 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			// Если были изменения, проверяем цвета
 			if (hasChanges) {
 				console.log('tl изменился: ')
-				console.log(currentSpans)
-				const isValidColorOfElements = validateColors(currentSpans)
-				previousSpans = currentSpans
+				console.log(currentShapesData)
+				const isValidColorOfElements = validateColors(currentShapesData)
+				previousShapesData = currentShapesData
 
 				if (isValidColorOfElements) {
-					await sendTlData(previousSpans, index)
+					await sendTlData(previousShapesData, index)
 				}
 			}
 		}, 20)
