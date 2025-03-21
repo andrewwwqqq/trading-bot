@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 ;(async () => {
 	const urls = [
 		'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
-		'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
+		// 'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
 	]
 
 	const currencies = ['AVAXUSDT', 'ADAUSDT']
@@ -99,9 +99,9 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
 		}
 
-		// Теперь добавляем проверку для кнопки с текстом "Data Window"
-		const dataWindowButtonExists = await page.evaluate(() => {
-			const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
+		// 🔍 Ищем кнопку "Data Window" один раз и получаем её атрибут aria-selected
+		const dataWindowButtonData = await page.evaluate(() => {
+			const xpath = "//button[@id='data-window']"
 			const result = document.evaluate(
 				xpath,
 				document,
@@ -109,24 +109,26 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				XPathResult.FIRST_ORDERED_NODE_TYPE,
 				null
 			)
-			const spanElement = result.singleNodeValue
-			if (spanElement) {
-				const button = spanElement.closest('button') // Находим родительский <button>
-				if (button) {
-					return button.getAttribute('aria-selected') // Возвращаем значение атрибута aria-selected
+			const button = result.singleNodeValue
+
+			if (button) {
+				return {
+					found: true,
+					ariaSelected: button.getAttribute('aria-selected'),
+					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
 				}
 			}
-			return null // Если не найдено, возвращаем null
+			return { found: false }
 		})
 
-		if (dataWindowButtonExists) {
+		if (dataWindowButtonData.found) {
 			console.log('✅ Кнопка "Data Window" найдена!')
 
-			if (dataWindowButtonExists === 'false') {
+			if (dataWindowButtonData.ariaSelected === 'false') {
 				console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
-				// Кликаем по кнопке
-				await page.evaluate(() => {
-					const xpath = "//span[contains(text(), 'Data Window')]" // Ищем span с нужным текстом
+
+				// Кликаем по кнопке через XPath
+				await page.evaluate(xpath => {
 					const result = document.evaluate(
 						xpath,
 						document,
@@ -134,14 +136,10 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 						XPathResult.FIRST_ORDERED_NODE_TYPE,
 						null
 					)
-					const spanElement = result.singleNodeValue
-					if (spanElement) {
-						const button = spanElement.closest('button') // Находим родительский <button>
-						if (button) {
-							button.click() // Кликаем по кнопке
-						}
-					}
-				})
+					const button = result.singleNodeValue
+					if (button) button.click()
+				}, dataWindowButtonData.xpath)
+
 				console.log('✅ Кнопка "Data Window" активирована!')
 			} else {
 				console.log('✅ Кнопка "Data Window" уже активирована!')
