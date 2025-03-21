@@ -1,6 +1,12 @@
 const puppeteer = require('puppeteer')
 const { cookies, urls } = require('./constants')
 const { delay, sendTlData } = require('./share')
+const {
+	findObjectTreeButtonData,
+	doObjectTreeButtonActive,
+	findDataWindowButtonData,
+	doDataWindowButtonActive,
+} = require('./core')
 
 ;(async () => {
 	for (let index = 0; index < urls.length; index++) {
@@ -27,26 +33,7 @@ const { delay, sendTlData } = require('./share')
 		})
 
 		// 🔍 Ищем кнопку Object Tree and Data Window один раз и получаем её атрибут aria-pressed
-		const objectTreeButtonData = await page.evaluate(() => {
-			const xpath = "//button[@aria-label='Object Tree and Data Window']"
-			const result = document.evaluate(
-				xpath,
-				document,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			)
-			const objectTreeButton = result.singleNodeValue
-
-			if (objectTreeButton) {
-				return {
-					found: true,
-					ariaPressed: objectTreeButton.getAttribute('aria-pressed'),
-					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
-				}
-			}
-			return { found: false }
-		})
+		const objectTreeButtonData = await findObjectTreeButtonData(page)
 
 		// если кнопка Object Tree and Data Window найдена
 		if (objectTreeButtonData.found) {
@@ -57,18 +44,7 @@ const { delay, sendTlData } = require('./share')
 				console.log('⚡ Кнопка не активна, кликаем...')
 
 				// Кликаем по кнопке через XPath
-				await page.evaluate(xpath => {
-					const result = document.evaluate(
-						xpath,
-						document,
-						null,
-						XPathResult.FIRST_ORDERED_NODE_TYPE,
-						null
-					)
-					const objectTreeButton = result.singleNodeValue
-					if (objectTreeButton) objectTreeButton.click()
-				}, objectTreeButtonData.xpath)
-
+				await doObjectTreeButtonActive(page, objectTreeButtonData)
 				console.log('✅ Кнопка активирована!')
 			} else {
 				console.log('✅ Кнопка уже активирована!')
@@ -77,26 +53,7 @@ const { delay, sendTlData } = require('./share')
 			console.error('❌ Кнопка "Object Tree and Data Window" не найдена!')
 		}
 		// 🔍 Ищем кнопку "Data Window" один раз и получаем её атрибут aria-selected
-		const dataWindowButtonData = await page.evaluate(() => {
-			const xpath = "//button[@id='data-window']"
-			const result = document.evaluate(
-				xpath,
-				document,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			)
-			const dataWindowButton = result.singleNodeValue
-
-			if (dataWindowButton) {
-				return {
-					found: true,
-					ariaSelected: dataWindowButton.getAttribute('aria-selected'),
-					xpath: xpath, // Сохраняем XPath, чтобы потом кликнуть
-				}
-			}
-			return { found: false }
-		})
+		const dataWindowButtonData = await findDataWindowButtonData(page)
 
 		// если кнопка Data Window найдена
 		if (dataWindowButtonData.found) {
@@ -107,18 +64,7 @@ const { delay, sendTlData } = require('./share')
 				console.log('⚡ Кнопка "Data Window" не активна, кликаем...')
 
 				// Кликаем по кнопке через XPath
-				await page.evaluate(xpath => {
-					const result = document.evaluate(
-						xpath,
-						document,
-						null,
-						XPathResult.FIRST_ORDERED_NODE_TYPE,
-						null
-					)
-					const dataWindowButton = result.singleNodeValue
-					if (dataWindowButton) dataWindowButton.click()
-				}, dataWindowButtonData.xpath)
-
+				await doDataWindowButtonActive(page, dataWindowButtonData)
 				console.log('✅ Кнопка "Data Window" активирована!')
 			} else {
 				console.log('✅ Кнопка "Data Window" уже активирована!')
@@ -126,7 +72,7 @@ const { delay, sendTlData } = require('./share')
 		} else {
 			console.error('❌ Кнопка "Data Window" не найдена!')
 		}
-
+		return
 		// 🔍 ищем индикатор "TL 1.0" на панели
 		const tl1Indicator = await page.evaluate(() => {
 			const xpath = "//span[contains(text(), 'TL 1.0')]"
