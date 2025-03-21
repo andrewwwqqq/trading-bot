@@ -392,12 +392,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			return isAllElementsValid
 		}
 
-		// 🔥 Первичная проверка цветов
-		let previousSpans = await getSpans()
-		console.log('📊 Начальные значения span:', previousSpans)
-		const isValidColorOfElements = validateColors(previousSpans)
-
-		if (isValidColorOfElements) {
+		const sendTlData = async (previousSpans, index) => {
 			const tl = previousSpans.map(previousSpan => {
 				const { isValid, ...newPreviousSpan } = previousSpan // Извлекаем все свойства, кроме isValid
 				return newPreviousSpan
@@ -431,9 +426,20 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 
 				const result = await response.json()
 				console.log('✅ Ответ от сервера:', result)
+
+				return result
 			} catch (error) {
 				console.error('❌ Ошибка отправки данных:', error)
 			}
+		}
+
+		// 🔥 Первичная проверка цветов
+		let previousSpans = await getSpans()
+		console.log('📊 Начальные значения span:', previousSpans)
+		const isValidColorOfElements = validateColors(previousSpans)
+
+		if (isValidColorOfElements) {
+			await sendTlData(previousSpans, index)
 		}
 
 		// 🔄 Проверяем изменения каждые 20 мс
@@ -460,45 +466,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				previousSpans = currentSpans
 
 				if (isValidColorOfElements) {
-					const tl = previousSpans.map(previousSpan => {
-						const { isValid, ...newPreviousSpan } = previousSpan // Извлекаем все свойства, кроме isValid
-						return newPreviousSpan
-					})
-
-					const now = new Date()
-					const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1)
-						.toString()
-						.padStart(2, '0')}-${now
-						.getDate()
-						.toString()
-						.padStart(2, '0')} ${now
-						.getHours()
-						.toString()
-						.padStart(2, '0')}:${now
-						.getMinutes()
-						.toString()
-						.padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-
-					const data = {
-						currencie: currencies[index],
-						tl,
-						timestamp,
-					}
-
-					try {
-						const response = await fetch(`${API_URL}/data`, {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-							},
-							body: JSON.stringify(data),
-						})
-
-						const result = await response.json()
-						console.log('✅ Ответ от сервера:', result)
-					} catch (error) {
-						console.error('❌ Ошибка отправки данных:', error)
-					}
+					await sendTlData(previousSpans, index)
 				}
 			}
 		}, 20)
