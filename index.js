@@ -148,10 +148,9 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			console.error('❌ Кнопка "Data Window" не найдена!')
 		}
 
-		return
-
-		const tl1ButtonExists = await page.evaluate(() => {
-			const xpath = "//span[contains(text(), 'TL 1.0')]" // Ищем span с нужным текстом
+		// 🔍 Ищем кнопку "TL 1.0" (span) один раз
+		const tl1ButtonData = await page.evaluate(() => {
+			const xpath = "//span[contains(text(), 'TL 1.0')]"
 			const result = document.evaluate(
 				xpath,
 				document,
@@ -159,19 +158,18 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				XPathResult.FIRST_ORDERED_NODE_TYPE,
 				null
 			)
-			const spanElement = result.singleNodeValue
-			return spanElement !== null // Возвращаем true, если span найден
+			return { found: result.singleNodeValue !== null }
 		})
 
-		if (tl1ButtonExists) {
+		if (tl1ButtonData.found) {
 			console.log('✅ Спан с текстом "TL 1.0" найден!')
 		} else {
 			console.log('❌ Спан с текстом "TL 1.0" не найден!')
 
-			// Ищем кнопку по aria-label и кликаем по ней
-			const indicatorButtonExists = await page.evaluate(() => {
+			// 🔍 Ищем кнопку "Indicators, metrics, and strategies"
+			const indicatorButtonData = await page.evaluate(() => {
 				const xpath =
-					"//button[@aria-label='Indicators, metrics, and strategies']" // Ищем кнопку по aria-label
+					"//button[@aria-label='Indicators, metrics, and strategies']"
 				const result = document.evaluate(
 					xpath,
 					document,
@@ -180,31 +178,38 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 					null
 				)
 				const button = result.singleNodeValue
-				return button !== null // Если кнопка найдена, возвращаем true
+				return {
+					found: button !== null,
+					xpath: xpath,
+				}
 			})
 
-			if (indicatorButtonExists) {
+			if (indicatorButtonData.found) {
 				console.log('✅ Кнопка "Indicators, metrics, and strategies" найдена!')
 
-				// Кликаем по кнопке
-				await page.evaluate(() => {
-					const button = document.querySelector(
-						"button[aria-label='Indicators, metrics, and strategies']"
+				// Кликаем по кнопке через XPath
+				await page.evaluate(xpath => {
+					const result = document.evaluate(
+						xpath,
+						document,
+						null,
+						XPathResult.FIRST_ORDERED_NODE_TYPE,
+						null
 					)
-					if (button) {
-						button.click() // Кликаем по кнопке
-					}
-				})
+					const button = result.singleNodeValue
+					if (button) button.click()
+				}, indicatorButtonData.xpath)
 
 				console.log(
 					'✅ Кнопка "Indicators, metrics, and strategies" активирована!'
 				)
 
+				// 🔍 Бесконечный цикл поиска "Invite-only"
 				while (true) {
-					console.log('while start')
-					// Создаем бесконечный цикл, который будет искать элемент, пока не найдет
-					const inviteOnlyElementExists = await page.evaluate(() => {
-						const xpath = "//span[contains(text(), 'Invite-only')]" // Ищем span с нужным текстом
+					console.log('⏳ Ищем элемент "Invite-only"...')
+
+					const inviteOnlyData = await page.evaluate(() => {
+						const xpath = "//span[contains(text(), 'Invite-only')]"
 						const result = document.evaluate(
 							xpath,
 							document,
@@ -213,90 +218,83 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 							null
 						)
 						const spanElement = result.singleNodeValue
+
 						if (spanElement) {
-							const parentDiv = spanElement.closest('div') // Находим родительский <div>
+							const parentDiv = spanElement.closest('div')
 							if (parentDiv) {
-								parentDiv.click() // Кликаем по родительскому <div>
-								console.log('parent div')
-								console.log(parentDiv)
-								return true // Успешно кликнули
-							} else {
-								console.log(
-									'Не нашли родительский элемент у span с текстом "Invite-only"'
-								)
+								parentDiv.click()
+								return { found: true }
 							}
-						} else {
-							console.log('Не нашли элемент с текстом "Invite-only"')
 						}
-						return false // Если не нашли элемент, возвращаем false
+						return { found: false }
 					})
 
-					if (inviteOnlyElementExists) {
-						console.log('✅ Элемент с текстом "Invite-only" найден и кликнут!')
-						break // Выходим из цикла, если элемент найден
+					if (inviteOnlyData.found) {
+						console.log('✅ Элемент "Invite-only" найден и кликнут!')
+						break
 					}
 
 					console.log(
-						'❌ Элемент "Invite-only" не найден, перезапускаем через 2 секунды...'
+						'❌ Элемент "Invite-only" не найден, повторяем через 2 секунды...'
 					)
 					await delay(2000)
 				}
 
-				const checkAndClickIndicator = async page => {
-					const indicatorExists = await page.evaluate(() => {
-						const xpath = "//div[@data-title='Indicator - TL 1.0']" // Ищем div с нужным data-title
-						const result = document.evaluate(
-							xpath,
-							document,
+				// 🔍 Проверяем и кликаем по "Indicator - TL 1.0"
+				const indicatorData = await page.evaluate(() => {
+					const xpath = "//div[@data-title='Indicator - TL 1.0']"
+					const result = document.evaluate(
+						xpath,
+						document,
+						null,
+						XPathResult.FIRST_ORDERED_NODE_TYPE,
+						null
+					)
+					const divElement = result.singleNodeValue
+
+					if (divElement) {
+						// Ищем span с текстом "Indicator - TL 1.0" через XPath
+						const spanXpath = ".//span[text()='Indicator - TL 1.0']" // Используем локальный XPath относительно div
+						const spanResult = document.evaluate(
+							spanXpath,
+							divElement,
 							null,
 							XPathResult.FIRST_ORDERED_NODE_TYPE,
 							null
 						)
-						const divElement = result.singleNodeValue // Получаем найденный div
+						const spanElement = spanResult.singleNodeValue
 
-						if (divElement) {
-							// Проверяем, что внутри div есть span с текстом "Indicator - TL 1.0"
-							const spanText = divElement.querySelector('span.title-cIIj4HrJ')
-							const isTextCorrect =
-								spanText && spanText.textContent === 'Indicator - TL 1.0'
+						// Проверяем, найден ли нужный span
+						const isTextCorrect = spanElement !== null
 
-							// Проверяем, что внутри div есть <a> с href="/u/igoraa500/"
-							const link = divElement.querySelector('a[href="/u/igoraa500/"]')
-							const isLinkCorrect = link !== null
+						// Ищем ссылку <a> с href="/u/igoraa500/" через XPath
+						const linkXpath = ".//a[@href='/u/igoraa500/']" // Используем локальный XPath относительно div
+						const linkResult = document.evaluate(
+							linkXpath,
+							divElement,
+							null,
+							XPathResult.FIRST_ORDERED_NODE_TYPE,
+							null
+						)
+						const linkElement = linkResult.singleNodeValue
 
-							if (isTextCorrect && isLinkCorrect) {
-								console.log('✅ Элемент с нужными данными найден!')
+						const isLinkCorrect = linkElement !== null
 
-								// Кликаем по div
-								divElement.click()
-								console.log('✅ Клик по элементу выполнен!')
-
-								return true // Если все условия выполнены, возвращаем true
-							} else {
-								console.log('❌ Условия не выполнены:')
-								if (!isTextCorrect) console.log('  - Нет нужного текста в span')
-								if (!isLinkCorrect) console.log('  - Нет нужной ссылки в <a>')
-							}
-						} else {
-							console.log(
-								'❌ Элемент с data-title="Indicator - TL 1.0" не найден!'
-							)
+						if (isTextCorrect && isLinkCorrect) {
+							divElement.click() // Кликаем по div, если оба условия выполнены
+							return { found: true }
 						}
+					}
 
-						return false // Если элемент не найден или условия не выполнены, возвращаем false
-					})
+					return { found: false }
+				})
 
-					return indicatorExists
-				}
+				if (indicatorData.found) {
+					console.log('✅ Элемент "Indicator - TL 1.0" найден и кликнут!')
 
-				// Использование функции
-				const indicatorFound = await checkAndClickIndicator(page)
-				if (indicatorFound) {
-					// Далее, если элемент найден и условия выполнены, можно продолжить с ним работу
-					console.log('Элемент найден, клик выполнен, продолжаем...')
-
-					const closeButtonExists = await page.evaluate(() => {
-						const xpath = "//button[@data-name='close']" // Ищем кнопку по атрибуту data-name="close"
+					// 🔍 Ищем кнопку закрытия
+					const closeButtonData = await page.evaluate(() => {
+						const xpath = "//button[@data-name='close']"
 						const result = document.evaluate(
 							xpath,
 							document,
@@ -307,24 +305,19 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 						const button = result.singleNodeValue
 
 						if (button) {
-							console.log('✅ Кнопка "Close" найдена!')
-							button.click() // Кликаем по кнопке
-							console.log('✅ Клик по кнопке "Close" выполнен!')
-							return true
-						} else {
-							console.log('❌ Кнопка "Close" не найдена!')
-							return false
+							button.click()
+							return { found: true }
 						}
+						return { found: false }
 					})
 
-					// Использование функции
-					if (closeButtonExists) {
-						console.log('Кнопка "Close" была нажата.')
+					if (closeButtonData.found) {
+						console.log('✅ Кнопка "Close" нажата.')
 					} else {
-						console.log('Кнопка "Close" не найдена.')
+						console.log('❌ Кнопка "Close" не найдена.')
 					}
 				} else {
-					console.log('Элемент не найден или не удовлетворяет условиям.')
+					console.log('❌ Элемент "Indicator - TL 1.0" не найден.')
 				}
 			} else {
 				console.error(
@@ -332,6 +325,8 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				)
 			}
 		}
+
+		return
 
 		// Ожидаемые цвета по индексам
 		const expectedColors = [
