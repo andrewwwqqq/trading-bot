@@ -25,10 +25,19 @@ const cookies = [
 	},
 ]
 
+// Ожидаемые цвета по индексам
+const expectedColors = [
+	'rgb(255, 82, 82)', // 1, 5
+	'rgb(255, 152, 0)', // 2, 6
+	'rgb(76, 175, 80)', // 3, 7
+	'rgb(49, 27, 146)', // 4, 8
+]
+
 // Экспортируем функцию
 module.exports = {
 	API_URL,
 	urls,
 	cookies,
 	currencies,
+	expectedColors,
 }

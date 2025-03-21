@@ -1,3 +1,5 @@
+const { expectedColors } = require('./constants')
+
 const findObjectTreeButtonData = async page => {
 	const objectTreeButtonData = await page.evaluate(() => {
 		const xpath = "//button[@aria-label='Object Tree and Data Window']"
@@ -248,6 +250,67 @@ const clickCloseIndicatorsButton = async (page, closeButtonData) => {
 	console.log('✅ Кнопка "Close" нажата.')
 }
 
+// Функция для получения значений всех span внутри родительских div с "Shapes"
+const getShapesData = async page => {
+	const shapesData = await page.evaluate(expectedColors => {
+		const xpath = "//div[contains(text(), 'Shapes')]"
+		const result = document.evaluate(
+			xpath,
+			document,
+			null,
+			XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+			null
+		)
+
+		const shapesData = []
+
+		for (let i = 0; i < result.snapshotLength && shapesData.length < 8; i++) {
+			const shapesDataParent = result.snapshotItem(i)
+			if (!shapesDataParent || !shapesDataParent.parentElement) continue
+
+			const shapesDataValue =
+				shapesDataParent.parentElement.querySelector('span')
+			if (shapesDataValue) {
+				const color = shapesDataValue.style.color
+				const text = shapesDataValue.innerText.trim()
+				const expectedColor = expectedColors[i % 4] // Цвет по шаблону
+				const isValid = color === expectedColor // Проверка соответствия
+
+				shapesData.push({ color, text, isValid })
+			}
+		}
+
+		return shapesData
+	}, expectedColors)
+
+	return shapesData
+}
+
+// Функция проверки соответствия цветов
+const validateColors = shapesData => {
+	let isAllElementsValid = true
+
+	shapesData.forEach((shapeData, index) => {
+		if (shapeData.isValid) {
+			console.log(
+				`✅ Элемент ${index + 1} соответствует: ${shapeData.color}, текст: "${
+					shapeData.text
+				}"`
+			)
+		} else {
+			isAllElementsValid = false
+
+			console.error(
+				`❌ Ошибка! Элемент ${index + 1}: ожидался цвет ${
+					expectedColors[index % 4]
+				}, но получен ${shapeData.color}`
+			)
+		}
+	})
+
+	return isAllElementsValid
+}
+
 module.exports = {
 	findObjectTreeButtonData,
 	doObjectTreeButtonActive,
@@ -260,4 +323,6 @@ module.exports = {
 	findIndicatorData,
 	findCloseIndicatorsButtonData,
 	clickCloseIndicatorsButton,
+	getShapesData,
+	validateColors,
 }

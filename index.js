@@ -13,6 +13,8 @@ const {
 	findIndicatorData,
 	findCloseIndicatorsButtonData,
 	clickCloseIndicatorsButton,
+	getShapesData,
+	validateColors,
 } = require('./core')
 
 ;(async () => {
@@ -149,81 +151,9 @@ const {
 				)
 			}
 		}
-		return
 
-		// Ожидаемые цвета по индексам
-		const expectedColors = [
-			'rgb(255, 82, 82)', // 1, 5
-			'rgb(255, 152, 0)', // 2, 6
-			'rgb(76, 175, 80)', // 3, 7
-			'rgb(49, 27, 146)', // 4, 8
-		]
-
-		// Функция для получения значений всех span внутри родительских div с "Shapes"
-		const getShapesData = async () => {
-			return await page.evaluate(expectedColors => {
-				const xpath = "//div[contains(text(), 'Shapes')]"
-				const result = document.evaluate(
-					xpath,
-					document,
-					null,
-					XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-					null
-				)
-
-				const shapesData = []
-
-				for (
-					let i = 0;
-					i < result.snapshotLength && shapesData.length < 8;
-					i++
-				) {
-					const shapesDataParent = result.snapshotItem(i)
-					if (!shapesDataParent || !shapesDataParent.parentElement) continue
-
-					const shapesDataValue =
-						shapesDataParent.parentElement.querySelector('span')
-					if (shapesDataValue) {
-						const color = shapesDataValue.style.color
-						const text = shapesDataValue.innerText.trim()
-						const expectedColor = expectedColors[i % 4] // Цвет по шаблону
-						const isValid = color === expectedColor // Проверка соответствия
-
-						shapesData.push({ color, text, isValid })
-					}
-				}
-
-				return shapesData
-			}, expectedColors)
-		}
-
-		// Функция проверки соответствия цветов
-		const validateColors = shapesData => {
-			let isAllElementsValid = true
-
-			shapesData.forEach((shapeData, index) => {
-				if (shapeData.isValid) {
-					console.log(
-						`✅ Элемент ${index + 1} соответствует: ${
-							shapeData.color
-						}, текст: "${shapeData.text}"`
-					)
-				} else {
-					isAllElementsValid = false
-
-					console.error(
-						`❌ Ошибка! Элемент ${index + 1}: ожидался цвет ${
-							expectedColors[index % 4]
-						}, но получен ${shapeData.color}`
-					)
-				}
-			})
-
-			return isAllElementsValid
-		}
-
-		// 🔥 Первичная проверка цветов
-		let previousShapesData = await getShapesData()
+		// 🔥 Первичная проверка цветов и значений tl
+		let previousShapesData = await getShapesData(page)
 		console.log('📊 Начальные значения span:', previousShapesData)
 		const isValidColorOfElements = validateColors(previousShapesData)
 
@@ -231,9 +161,9 @@ const {
 			await sendTlData(previousShapesData, index)
 		}
 
-		// 🔄 Проверяем изменения каждые 20 мс
+		// 🔄 Проверяем изменения каждые n мс
 		setInterval(async () => {
-			const currentShapesData = await getShapesData()
+			const currentShapesData = await getShapesData(page)
 
 			// Проверяем изменения
 			let hasChanges = false
