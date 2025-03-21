@@ -326,8 +326,6 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 			}
 		}
 
-		return
-
 		// Ожидаемые цвета по индексам
 		const expectedColors = [
 			'rgb(255, 82, 82)', // 1, 5
@@ -368,6 +366,7 @@ const API_URL = 'http://localhost:3000' // Укажи URL сервера
 				return spans
 			}, expectedColors)
 		}
+		return
 
 		// Функция проверки соответствия цветов
 		const validateColors = spans => {
