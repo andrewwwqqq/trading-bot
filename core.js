@@ -1,4 +1,5 @@
-const { expectedColors } = require('./constants')
+const { expectedColors, currencies } = require('./constants')
+const { sendMessageToGroup } = require('./telegram-bot')
 
 const findObjectTreeButtonData = async page => {
 	const objectTreeButtonData = await page.evaluate(() => {
@@ -234,7 +235,7 @@ const findCloseIndicatorsButtonData = async page => {
 }
 
 // 🔘 Функция для клика по кнопке закрытия
-const clickCloseIndicatorsButton = async (page, closeButtonData) => {
+const clickCloseIndicatorsButton = async (page, closeButtonData, index) => {
 	await page.evaluate(xpath => {
 		const result = document.evaluate(
 			xpath,
@@ -248,6 +249,7 @@ const clickCloseIndicatorsButton = async (page, closeButtonData) => {
 	}, closeButtonData.xpath)
 
 	console.log('✅ Кнопка "Close" нажата.')
+	await sendMessageToGroup(`${currencies[index]} :✅ Кнопка "Close" нажата.`)
 }
 
 // Функция для получения значений всех span внутри родительских div с "Shapes"

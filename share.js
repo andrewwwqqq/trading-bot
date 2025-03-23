@@ -1,4 +1,5 @@
 const { API_URL, currencies } = require('./constants')
+const { sendMessageToGroup } = require('./telegram-bot')
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -40,6 +41,9 @@ const sendTlData = async (previousShapesData, index) => {
 		return result
 	} catch (error) {
 		console.error('❌ Ошибка отправки данных:', error)
+		await sendMessageToGroup(
+			`${currencies[index]} :❌ Ошибка отправки данных: ${error}`
+		)
 	}
 }
 
