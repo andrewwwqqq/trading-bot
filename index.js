@@ -236,7 +236,7 @@ const {
 		const isValidColorOfElements = validateColors(previousShapesData)
 
 		if (isValidColorOfElements) {
-			await sendTlData(previousShapesData, index)
+			// await sendTlData(previousShapesData, index)
 		} else {
 			console.log('❌ Что-то не так со структурой tl, либо цвета изменились')
 			await sendMessageToGroup(
@@ -253,7 +253,7 @@ const {
 
 			currentShapesData.forEach((currentShapeData, index) => {
 				if (
-					currentShapeData.color !== previousShapesData[index]?.color ||
+					// currentShapeData.color !== previousShapesData[index]?.color ||
 					currentShapeData.text !== previousShapesData[index]?.text
 				) {
 					hasChanges = true
@@ -270,7 +270,7 @@ const {
 				previousShapesData = currentShapesData
 
 				if (isValidColorOfElements) {
-					await sendTlData(previousShapesData, index)
+					// await sendTlData(previousShapesData, index)
 				} else {
 					console.log(
 						'❌ Что-то не так со структурой tl, либо цвета изменились'

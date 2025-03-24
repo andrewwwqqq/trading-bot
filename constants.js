@@ -16,14 +16,14 @@ const currencies = [
 const urls = [
 	'https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT&interval=7',
 	'https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:AAVEUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:KSMUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:ATOMUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:C98USDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:1INCHUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:LUNAUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:AXSUSDT&interval=7',
-	// 'https://www.tradingview.com/chart/?symbol=BINANCE:XLMUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:AAVEUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:KSMUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:ATOMUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:C98USDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:1INCHUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:LUNAUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:AXSUSDT&interval=7',
+	'https://www.tradingview.com/chart/?symbol=BINANCE:XLMUSDT&interval=7',
 ]
 
 const cookies = [
