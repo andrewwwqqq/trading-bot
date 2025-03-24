@@ -229,7 +229,10 @@ const {
 
 		// 🔥 Первичная проверка цветов и значений tl
 		let previousShapesData = await getShapesData(page)
-		console.log('📊 Начальные значения tl:', previousShapesData)
+		console.log(
+			`📊 ${currencies[index]}: Начальные значения tl:`,
+			previousShapesData
+		)
 		await sendMessageToGroup(
 			`${currencies[index]} :📊 Начальные значения tl установлены`
 		)
@@ -245,43 +248,50 @@ const {
 		}
 
 		// 🔄 Проверяем изменения каждые n мс
-		setInterval(async () => {
-			const currentShapesData = await getShapesData(page)
+		const checkNewTlTimeoutFunc = async () => {
+			const checkNewTlTimeout = await setTimeout(async () => {
+				const currentShapesData = await getShapesData(page)
 
-			// Проверяем изменения
-			let hasChanges = false
+				// Проверяем изменения
+				let hasChanges = false
 
-			currentShapesData.forEach((currentShapeData, index) => {
-				if (
-					currentShapeData.color !== previousShapesData[index]?.color ||
-					currentShapeData.text !== previousShapesData[index]?.text
-				) {
-					hasChanges = true
+				currentShapesData.forEach((currentShapeData, index) => {
+					if (
+						currentShapeData.color !== previousShapesData[index]?.color ||
+						currentShapeData.text !== previousShapesData[index]?.text
+					) {
+						hasChanges = true
+					}
+				})
+
+				// Если были изменения, проверяем цвета
+				if (hasChanges) {
+					console.log(`${currencies[index]} tl изменился: `)
+					await sendMessageToGroup(`${currencies[index]} :📊 tl изменился`)
+					console.log(currentShapesData)
+
+					const isValidColorOfElements = validateColors(currentShapesData)
+					previousShapesData = currentShapesData
+
+					if (isValidColorOfElements) {
+						await sendTlData(previousShapesData, index)
+					} else {
+						console.log(
+							'❌ Что-то не так со структурой tl, либо цвета изменились'
+						)
+
+						await sendMessageToGroup(
+							`${currencies[index]} :❌ Что-то не так со структурой tl, либо цвета изменились`
+						)
+					}
 				}
-			})
 
-			// Если были изменения, проверяем цвета
-			if (hasChanges) {
-				console.log('tl изменился: ')
-				await sendMessageToGroup(`${currencies[index]} :📊 tl изменился`)
-				console.log(currentShapesData)
+				clearTimeout(checkNewTlTimeout)
+				await checkNewTlTimeoutFunc()
+			}, 20)
+		}
 
-				const isValidColorOfElements = validateColors(currentShapesData)
-				previousShapesData = currentShapesData
-
-				if (isValidColorOfElements) {
-					await sendTlData(previousShapesData, index)
-				} else {
-					console.log(
-						'❌ Что-то не так со структурой tl, либо цвета изменились'
-					)
-
-					await sendMessageToGroup(
-						`${currencies[index]} :❌ Что-то не так со структурой tl, либо цвета изменились`
-					)
-				}
-			}
-		}, 20)
+		await checkNewTlTimeoutFunc()
 
 		await delay(3000)
 	}
